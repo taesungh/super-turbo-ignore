@@ -1,0 +1,49 @@
+name: Real Turbo
+author: Hack at UCI
+description: Better version of turbo-ignore from vercel/turborepo
+
+inputs:
+  task:
+    description: The task to execute
+    default: "build"
+  workspace:
+    required: true
+    description: The workspace to filter on
+  npm-cache-dependency-path:
+    description: Value given for cache-dependency-path to actions/setup-node
+    default: ""
+outputs:
+  status:
+    description: "Status is 0 if changes can be ignored, 1 if changes should be deployed."
+    value: ${{ steps.run_script.outputs.status}}
+
+runs:
+  using: composite
+  steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+      with:
+        # History must include parent commit for comparison
+        # For pull requests, HEAD is a merge commit, so the parent is the base branch
+        # For pushes, the parent commit must be the previous deployment,
+        # so rebase merges must be disabled in the repository settings
+        # This comparison also assumes the previous deployment succeeded
+        fetch-depth: 2
+
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: "npm"
+        cache-dependency-path: ${{ inputs.npm-cache-dependency-path }}
+
+    - name: Run script
+      id: run_script
+      env:
+        # See Security hardening: Good practices for mitigating script injection attacks
+        TASK: ${{ inputs.task }}
+        WORKSPACE: ${{ inputs.workspace }}
+      shell: bash
+      run: |
+        v=$(node ${{ github.action_path }}/super-turbo-ignore.js $TASK $WORKSPACE)
+        echo "status=${v}" >> $GITHUB_OUTPUT
