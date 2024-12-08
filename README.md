@@ -50,12 +50,6 @@ against the prior state of the branch from when the comparison was last run.
 
 **Required.** The workspace to filter on.
 
-#### `npm-cache-dependency-path`
-
-**Optional.** Value given for cache-dependency-path to
-[actions/setup-node](https://github.com/actions/setup-node).
-Defaults to `""`
-
 ### Outputs
 
 #### `status`
